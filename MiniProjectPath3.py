@@ -10,6 +10,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 import matplotlib.pyplot as plt
 import copy
+from sklearn.decomposition import KernelPCA
 
 
 rng = np.random.RandomState(1)
@@ -20,29 +21,55 @@ labels = digits.target
 #Get our training data
 X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.6, shuffle=False)
 
-def dataset_searcher(number_list,images,labels):
-  #insert code that when given a list of integers, will find the labels and images
-  #and put them all in numpy arrary (at the same time, as training and testing data)
-  images_list = []
-  labels_list = []
-  for num in number_list:
+def dataset_searcher(number_list, images, labels):
+    if not isinstance(number_list, list):
+        raise TypeError("number_list must be a list")
+    
+    images_list = []
+    labels_list = []
+    for num in number_list:
+        if num not in range(10):  # 数字只能是0-9
+            raise ValueError(f"Invalid digit {num}. Must be between 0-9")
         indices = np.where(labels == num)[0]
         images_list.extend(images[indices])
         labels_list.extend(labels[indices])
-  return np.array(images_list), np.array(labels_list)
-  pass
-  #return images_nparray, labels_nparray
+    return np.array(images_list), np.array(labels_list)
 
-def print_numbers(images,labels):
-  #insert code that when given images and labels (of numpy arrays)
-  #the code will plot the images and their labels in the title.
-  for i, image in enumerate(images[:len(labels)]):
-      plt.subplot(1, len(labels), i + 1)
-      plt.imshow(image, cmap='gray')
-      plt.title(f"Label: {labels[i]}")
-      plt.axis('off')
-  plt.show() 
-  #pass
+def print_numbers(images, labels):
+    n = len(images[:len(labels)])
+    # 限制每个图像的大小
+    fig = plt.figure(figsize=(min(n*2, 20), 2))  # 限制最大宽度为20
+    
+    for i, image in enumerate(images[:len(labels)]):
+        plt.subplot(1, n, i + 1)
+        plt.imshow(image, cmap='gray')
+        plt.title(f"Label: {labels[i]}")
+        plt.axis('off')
+    
+    try:
+        plt.tight_layout()
+    except ValueError:
+        # 如果tight_layout失败，使用自动布局
+        plt.subplots_adjust(wspace=0.3, hspace=0.3)
+    
+    plt.show()
+
+def evaluate_model(model, X_test, y_test, model_name=""):
+    y_pred = model.predict(X_test)
+    accuracy = OverallAccuracy(y_pred, y_test)
+    print(f"{model_name} Accuracy: {accuracy:.4f}")
+    return accuracy
+
+def denoise_data(X_train_poison, n_components=64):
+    X_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
+    kpca = KernelPCA(
+        n_components=n_components, 
+        kernel='rbf',
+        gamma=0.1,
+        fit_inverse_transform=True  # 允许反转变换
+    )
+    X_denoised = kpca.fit_transform(X_reshaped)
+    return X_denoised
 
 class_numbers = [2,0,8,7,5]
 #Part 1
@@ -140,7 +167,6 @@ print("MLP model accuracy on poisoned data: " + str(Model3_Poisoned_Accuracy))
 # So instead of using the X_train_poison data of shape 718 (718 images) by 8 by 8, the new shape would be 718 by 64
 
 #X_train_denoised = # fill in the code here
-from sklearn.decomposition import KernelPCA
 
 # Denoise poisoned data
 X_train_poison_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
