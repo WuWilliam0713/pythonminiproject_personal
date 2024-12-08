@@ -93,20 +93,20 @@ print_numbers(class_number_images , class_number_labels )
 
 model_1 = GaussianNB()
 
-#however, before we fit the model we need to change the 8x8 image data into 1 dimension
+# however, before we fit the model we need to change the 8x8 image data into 1 dimension
 # so instead of having the Xtrain data beign of shape 718 (718 images) by 8 by 8
 # the new shape would be 718 by 64
 X_train_reshaped = X_train.reshape(X_train.shape[0], -1)
 X_test_reshaped = X_test.reshape(X_test.shape[0], -1)
 
-#Now we can fit the model
+# Now we can fit the model
 model_1.fit(X_train_reshaped, y_train)
-#Part 3 Calculate model1_results using model_1.predict()
+# Part 3 Calculate model1_results using model_1.predict()
 model1_results = model_1.predict(X_test_reshaped)
 
 
 def OverallAccuracy(results, actual_values):
-  #Calculate the overall accuracy of the model (out of the predicted labels, how many were correct?)
+  # Calculate the overall accuracy of the model (out of the predicted labels, how many were correct?)
   correct = np.sum(results == actual_values)
   total = len(actual_values)
   Accuracy =  correct / total
@@ -118,21 +118,21 @@ Model1_Overall_Accuracy = OverallAccuracy(model1_results, y_test)
 print("The overall results of the Gaussian model is " + str(Model1_Overall_Accuracy))
 
 
-#Part 5
+# Part 5
 allnumbers = [0,1,2,3,4,5,6,7,8,9]
-allnumbers_images, allnumbers_labels = dataset_searcher(allnumbers)
+allnumbers_images, allnumbers_labels = dataset_searcher(allnumbers, X_test, y_test)
 
 
 
-#Part 6
-#Repeat for K Nearest Neighbors
+# Part 6
+# Repeat for K Nearest Neighbors
 model_2 = KNeighborsClassifier(n_neighbors=10)
 model_2.fit(X_train_reshaped, y_train)
 model2_results = model_2.predict(X_test_reshaped)
 Model2_Overall_Accuracy = OverallAccuracy(model2_results, y_test)
 print("The overall accuracy of the KNN model is " + str(Model2_Overall_Accuracy))
 
-#Repeat for the MLP Classifier
+# Repeat for the MLP Classifier
 model_3 = MLPClassifier(random_state=0,max_iter=500)
 model_3.fit(X_train_reshaped, y_train)
 model3_results = model_3.predict(X_test_reshaped)
@@ -140,8 +140,8 @@ Model3_Overall_Accuracy = OverallAccuracy(model3_results, y_test)
 print("The overall accuracy of the MLP model is " + str(Model3_Overall_Accuracy))
 
 
-#Part 8
-#Poisoning
+# Part 8
+# Poisoning
 # Code for generating poison data. There is nothing to change here.
 noise_scale = 10.0
 poison = rng.normal(scale=noise_scale, size=X_train.shape)
@@ -149,8 +149,8 @@ poison = rng.normal(scale=noise_scale, size=X_train.shape)
 X_train_poison = X_train + poison
 
 
-#Part 9-11
-#Determine the 3 models performance but with the poisoned training data X_train_poison and y_train instead of X_train and y_train
+# Part 9-11
+# Determine the 3 models performance but with the poisoned training data X_train_poison and y_train instead of X_train and y_train
 # Poisoned data
 X_train_poison_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
 
@@ -173,7 +173,7 @@ Model3_Poisoned_Accuracy = OverallAccuracy(model3_poisoned_results, y_test)
 print("MLP model accuracy on poisoned data: " + str(Model3_Poisoned_Accuracy))
 
 
-#Part 12-13
+# Part 12-13
 # Denoise the poisoned training data, X_train_poison. 
 # hint --> Suggest using KernelPCA method from sklearn library, for denoising the data. 
 # When fitting the KernelPCA method, the input image of size 8x8 should be reshaped into 1 dimension
@@ -208,4 +208,34 @@ print("MLP model accuracy on denoised data: " + str(Model3_Denoised_Accuracy))
 #Part 14-15
 #Determine the 3 models performance but with the denoised training data, X_train_denoised and y_train instead of X_train_poison and y_train
 #Explain how the model performances changed after the denoising process.
+performance_table = {
+    "Model": ["GaussianNB", "KNeighborsClassifier", "MLPClassifier"],
+    "Clean Data Accuracy": [
+        Model1_Overall_Accuracy,
+        Model2_Overall_Accuracy,
+        Model3_Overall_Accuracy,
+    ],
+    "Poisoned Data Accuracy": [
+        Model1_Poisoned_Accuracy,
+        Model2_Poisoned_Accuracy,
+        Model3_Poisoned_Accuracy,
+    ],
+    "Denoised Data Accuracy": [
+        Model1_Denoised_Accuracy,
+        Model2_Denoised_Accuracy,
+        Model3_Denoised_Accuracy,
+    ],
+}
 
+import pandas as pd
+performance_df = pd.DataFrame(performance_table)
+print(performance_df)
+
+performance_df.set_index("Model").plot(kind="bar", figsize=(10, 6))
+plt.title("Model Performance Comparison")
+plt.ylabel("Accuracy")
+plt.xlabel("Model")
+plt.xticks(rotation=0)
+plt.legend(loc="lower right")
+plt.tight_layout()
+plt.show()
