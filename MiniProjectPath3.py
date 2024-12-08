@@ -15,20 +15,22 @@ from sklearn.decomposition import KernelPCA
 
 rng = np.random.RandomState(1)
 digits = datasets.load_digits()
-images = digits.images
-labels = digits.target
+images = digits.images # n_samples, 8, 8
+labels = digits.target # n_samples
 
 #Get our training data
 X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.6, shuffle=False)
 
 def dataset_searcher(number_list, images, labels):
+  # insert code that when given a list of integers, will find the labels and images
+  # and put them all in numpy arrary (at the same time, as training and testing data)
     if not isinstance(number_list, list):
         raise TypeError("number_list must be a list")
     
     images_list = []
     labels_list = []
     for num in number_list:
-        if num not in range(10):  # 数字只能是0-9
+        if num not in range(10):  # only digit
             raise ValueError(f"Invalid digit {num}. Must be between 0-9")
         indices = np.where(labels == num)[0]
         images_list.extend(images[indices])
@@ -36,21 +38,32 @@ def dataset_searcher(number_list, images, labels):
     return np.array(images_list), np.array(labels_list)
 
 def print_numbers(images, labels):
-    n = len(images[:len(labels)])
-    # 限制每个图像的大小
-    fig = plt.figure(figsize=(min(n*2, 20), 2))  # 限制最大宽度为20
+  # insert code that when given images and labels (of numpy arrays)
+  # the code will plot the images and their labels in the title.
+    max_cols = 20
+    if len(images) != len(labels):
+        raise ValueError("Number of images and labels must be the same.")
     
-    for i, image in enumerate(images[:len(labels)]):
-        plt.subplot(1, n, i + 1)
-        plt.imshow(image, cmap='gray')
-        plt.title(f"Label: {labels[i]}")
-        plt.axis('off')
+    n = len(images)
+    rows = (n+max_cols-1) // max_cols  # Display up to 10 images per row
+    cols = min(n, max_cols)  # Up to 10 columns per row
     
+    fig, axes = plt.subplots(rows, cols, figsize=(20, 2 * rows))
+
+    for i, (image, label) in enumerate(zip(images, labels)):
+        ax = axes[i // max_cols, i % max_cols]  # Access the subplot for the current image
+        ax.imshow(image, cmap='gray') # Display the image in grayscale
+        ax.axis('off')
+    
+    # Turn off unused axes
+    for j in range(i + 1, rows * cols):
+        ax = axes[j // max_cols, j % max_cols]
+        ax.axis('off')
     try:
-        plt.tight_layout()
-    except ValueError:
-        # 如果tight_layout失败，使用自动布局
-        plt.subplots_adjust(wspace=0.3, hspace=0.3)
+        plt.tight_layout(pad=0.1)
+    except ValueError as e:
+        print(f"Warning: Unable to apply tight layout: {e}")
+        plt.subplots_adjust(wspace=0.1, hspace=0.3)
     
     plt.show()
 
