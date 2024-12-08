@@ -140,18 +140,12 @@ Model3_Overall_Accuracy = OverallAccuracy(model3_results, y_test)
 print("The overall accuracy of the MLP model is " + str(Model3_Overall_Accuracy))
 
 
-# Part 8
-# Poisoning
-# Code for generating poison data. There is nothing to change here.
+# Part 8: Poisoning the Training Data
 noise_scale = 10.0
 poison = rng.normal(scale=noise_scale, size=X_train.shape)
-
 X_train_poison = X_train + poison
 
-
-# Part 9-11
-# Determine the 3 models performance but with the poisoned training data X_train_poison and y_train instead of X_train and y_train
-# Poisoned data
+# Poisoned data reshaping
 X_train_poison_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
 
 # GaussianNB with poisoned data
@@ -172,42 +166,35 @@ model3_poisoned_results = model_3.predict(X_test_reshaped)
 Model3_Poisoned_Accuracy = OverallAccuracy(model3_poisoned_results, y_test)
 print("MLP model accuracy on poisoned data: " + str(Model3_Poisoned_Accuracy))
 
-
-# Part 12-13
-# Denoise the poisoned training data, X_train_poison. 
-# hint --> Suggest using KernelPCA method from sklearn library, for denoising the data. 
-# When fitting the KernelPCA method, the input image of size 8x8 should be reshaped into 1 dimension
-# So instead of using the X_train_poison data of shape 718 (718 images) by 8 by 8, the new shape would be 718 by 64
-
-#X_train_denoised = # fill in the code here
-
-# Denoise poisoned data
+# Part 12-13: Denoising the Poisoned Data
 X_train_poison_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
-kpca = KernelPCA(n_components=64, kernel='rbf', gamma=0.1)
+
+# Apply KernelPCA for denoising
+kpca = KernelPCA(n_components=61, kernel='rbf', gamma=0.1, fit_inverse_transform=True)
 X_train_denoised = kpca.fit_transform(X_train_poison_reshaped)
 
-# Train GaussianNB with denoised data
+# Transform the test data to match the reduced dimensions
+X_test_denoised = kpca.transform(X_test_reshaped)
+
+# GaussianNB with denoised data
 model_1.fit(X_train_denoised, y_train)
-model1_denoised_results = model_1.predict(X_test_reshaped)
+model1_denoised_results = model_1.predict(X_test_denoised)
 Model1_Denoised_Accuracy = OverallAccuracy(model1_denoised_results, y_test)
 print("Gaussian model accuracy on denoised data: " + str(Model1_Denoised_Accuracy))
 
-# Train KNN with denoised data
+# KNN with denoised data
 model_2.fit(X_train_denoised, y_train)
-model2_denoised_results = model_2.predict(X_test_reshaped)
+model2_denoised_results = model_2.predict(X_test_denoised)
 Model2_Denoised_Accuracy = OverallAccuracy(model2_denoised_results, y_test)
 print("KNN model accuracy on denoised data: " + str(Model2_Denoised_Accuracy))
 
-# Train MLPClassifier with denoised data
+# MLPClassifier with denoised data
 model_3.fit(X_train_denoised, y_train)
-model3_denoised_results = model_3.predict(X_test_reshaped)
+model3_denoised_results = model_3.predict(X_test_denoised)
 Model3_Denoised_Accuracy = OverallAccuracy(model3_denoised_results, y_test)
 print("MLP model accuracy on denoised data: " + str(Model3_Denoised_Accuracy))
 
-
-#Part 14-15
-#Determine the 3 models performance but with the denoised training data, X_train_denoised and y_train instead of X_train_poison and y_train
-#Explain how the model performances changed after the denoising process.
+# Part 14-15: Performance Comparison
 performance_table = {
     "Model": ["GaussianNB", "KNeighborsClassifier", "MLPClassifier"],
     "Clean Data Accuracy": [
@@ -239,3 +226,33 @@ plt.xticks(rotation=0)
 plt.legend(loc="lower right")
 plt.tight_layout()
 plt.show()
+
+def visualize_denoised_only(denoised, indices):
+    """
+    Visualizes only the denoised images.
+
+    Args:
+    - denoised: Denoised images after KernelPCA.
+    - indices: List of indices to visualize.
+    """
+    n = len(indices)
+    fig, axes = plt.subplots(1, n, figsize=(n * 3, 3))
+
+    for i, idx in enumerate(indices):
+        denoised_img = denoised[idx].reshape(8, 8)  # Reshape back to 8x8
+        axes[i].imshow(denoised_img, cmap="gray")
+        axes[i].set_title(f"Denoised #{idx}")
+        axes[i].axis("off")
+
+    plt.tight_layout()
+    plt.show()
+
+
+# Reshape denoised data to match original dimensions for visualization
+X_train_denoised_reshaped = kpca.inverse_transform(X_train_denoised).reshape(X_train.shape)
+
+# Choose some indices to visualize
+indices_to_visualize = [0, 1, 2, 3, 4]  # Visualize the first 5 images
+
+# Call the visualization function
+visualize_denoised_only(X_train_denoised_reshaped, indices_to_visualize)
