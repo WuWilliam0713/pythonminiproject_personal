@@ -123,7 +123,7 @@ print("The overall results of the Gaussian model is " + str(Model1_Overall_Accur
 # Part 5
 allnumbers = [0,1,2,3,4,5,6,7,8,9]
 allnumbers_images, allnumbers_labels = dataset_searcher(allnumbers, X_test, y_test)
-
+# print_numbers(allnumbers_images, allnumbers_labels)
 
 
 # Part 6
@@ -177,7 +177,7 @@ X_train_poison_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
 
 # Apply KernelPCA for denoising
 # Reduce dimensions and enable inverse transformation for visualization
-kpca = KernelPCA(n_components=61, kernel='rbf', gamma=0.1, fit_inverse_transform=True)
+kpca = KernelPCA(n_components=64, kernel='linear', gamma=0.1, fit_inverse_transform=True)
 X_train_denoised = kpca.fit_transform(X_train_poison_reshaped)  # Denoised training data
 
 # Transform the test data to match the reduced dimensions
@@ -262,7 +262,33 @@ def visualize_denoised_only(denoised, indices):
 X_train_denoised_reshaped = kpca.inverse_transform(X_train_denoised).reshape(X_train.shape)
 
 # Choose some indices to visualize
-indices_to_visualize = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # Visualize the first 5 images
+indices_to_visualize = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 # Call the visualization function
 visualize_denoised_only(X_train_denoised_reshaped, indices_to_visualize)
+
+
+# test
+# Visualize the first few reconstructed images
+reconstructed_images = kpca.inverse_transform(X_train_denoised).reshape(X_train.shape)
+
+def visualize_reconstructed(images, original, indices):
+    fig, axes = plt.subplots(2, len(indices), figsize=(15, 5))
+
+    for i, idx in enumerate(indices):
+        # Original image
+        axes[0, i].imshow(original[idx], cmap='gray')
+        axes[0, i].set_title("Original")
+        axes[0, i].axis('off')
+
+        # Reconstructed image
+        axes[1, i].imshow(images[idx], cmap='gray')
+        axes[1, i].set_title("Reconstructed")
+        axes[1, i].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+# Choose indices to visualize
+indices_to_visualize = [0, 1, 2, 3, 4]
+visualize_reconstructed(reconstructed_images, X_train, indices_to_visualize)
