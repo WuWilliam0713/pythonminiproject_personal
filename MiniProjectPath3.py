@@ -144,7 +144,7 @@ print("The overall accuracy of the MLP model is " + str(Model3_Overall_Accuracy)
 
 # Part 8: Poisoning the Training Data
 # Add random Gaussian noise to the training data to simulate poisoning
-noise_scale = 10.0
+noise_scale = 0.25
 poison = rng.normal(scale=noise_scale, size=X_train.shape)  # Generate noise
 X_train_poison = X_train + poison  # Add noise to the training images
 
@@ -177,7 +177,7 @@ X_train_poison_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
 
 # Apply KernelPCA for denoising
 # Reduce dimensions and enable inverse transformation for visualization
-kpca = KernelPCA(n_components=64, kernel='linear', gamma=0.1, fit_inverse_transform=True)
+kpca = KernelPCA(n_components=64, kernel='linear', gamma=0.01, fit_inverse_transform=True)
 X_train_denoised = kpca.fit_transform(X_train_poison_reshaped)  # Denoised training data
 
 # Transform the test data to match the reduced dimensions
@@ -265,7 +265,7 @@ X_train_denoised_reshaped = kpca.inverse_transform(X_train_denoised).reshape(X_t
 indices_to_visualize = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
 # Call the visualization function
-visualize_denoised_only(X_train_denoised_reshaped, indices_to_visualize)
+# visualize_denoised_only(X_train_denoised_reshaped, indices_to_visualize)
 
 
 # test
@@ -290,5 +290,5 @@ def visualize_reconstructed(images, original, indices):
     plt.show()
 
 # Choose indices to visualize
-indices_to_visualize = [0, 1, 2, 3, 4]
+indices_to_visualize = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 visualize_reconstructed(reconstructed_images, X_train, indices_to_visualize)
