@@ -33,31 +33,30 @@ def dataset_searcher(number_list, images, labels):
         if num not in range(10):  # only digit
             raise ValueError(f"Invalid digit {num}. Must be between 0-9")
         indices = np.where(labels == num)[0]
-        images_list.extend(images[indices])
-        labels_list.extend(labels[indices])
+        images_list.append(images[indices[0]])
+        labels_list.append(labels[indices[0]])
     return np.array(images_list), np.array(labels_list)
 
 def print_numbers(images, labels):
   # insert code that when given images and labels (of numpy arrays)
   # the code will plot the images and their labels in the title.
-    max_cols = 20
     if len(images) != len(labels):
         raise ValueError("Number of images and labels must be the same.")
     
     n = len(images)
-    rows = (n+max_cols-1) // max_cols  # Display up to 10 images per row
-    cols = min(n, max_cols)  # Up to 10 columns per row
+    rows = 1  #isplay up to 10 images per row
+    cols = min(n, 5)  # Up to 10 columns per row
     
     fig, axes = plt.subplots(rows, cols, figsize=(20, 2 * rows))
 
     for i, (image, label) in enumerate(zip(images, labels)):
-        ax = axes[i // max_cols, i % max_cols]  # Access the subplot for the current image
+        ax = axes[i % 5]  # Access the subplot for the current image
         ax.imshow(image, cmap='gray') # Display the image in grayscale
         ax.axis('off')
     
     # Turn off unused axes
     for j in range(i + 1, rows * cols):
-        ax = axes[j // max_cols, j % max_cols]
+        ax = axes[j % 5]
         ax.axis('off')
     try:
         plt.tight_layout(pad=0.1)
@@ -67,30 +66,15 @@ def print_numbers(images, labels):
     
     plt.show()
 
-def evaluate_model(model, X_test, y_test, model_name=""):
-    y_pred = model.predict(X_test)
-    accuracy = OverallAccuracy(y_pred, y_test)
-    print(f"{model_name} Accuracy: {accuracy:.4f}")
-    return accuracy
-
-def denoise_data(X_train_poison, n_components=64):
-    X_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
-    kpca = KernelPCA(
-        n_components=n_components, 
-        kernel='rbf',
-        gamma=0.1,
-        fit_inverse_transform=True  # 允许反转变换
-    )
-    X_denoised = kpca.fit_transform(X_reshaped)
-    return X_denoised
 
 class_numbers = [2,0,8,7,5]
-'''
+
 #Part 1
 class_number_images , class_number_labels = dataset_searcher(class_numbers, images, labels)
+print(len(class_number_images))
 #Part 2
 print_numbers(class_number_images , class_number_labels )
-'''
+
 
 
 model_1 = GaussianNB()
