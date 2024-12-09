@@ -107,8 +107,6 @@ print("The overall results of the Gaussian model is " + str(Model1_Overall_Accur
 # Part 5
 allnumbers = [0,1,2,3,4,5,6,7,8,9]
 allnumbers_images, allnumbers_labels = dataset_searcher(allnumbers, X_test, y_test)
-# print_numbers(allnumbers_images, allnumbers_labels)
-
 
 # Part 6
 # Repeat for K Nearest Neighbors
@@ -190,17 +188,17 @@ print("MLP model accuracy on denoised data: " + str(Model3_Denoised_Accuracy))
 performance_table = {
     "Model": ["GaussianNB", "KNeighborsClassifier", "MLPClassifier"],
     "Clean Data Accuracy": [
-        Model1_Overall_Accuracy,  # Accuracy on clean data
+        Model1_Overall_Accuracy,   # Accuracy of clean data
         Model2_Overall_Accuracy,
         Model3_Overall_Accuracy,
     ],
     "Poisoned Data Accuracy": [
-        Model1_Poisoned_Accuracy,  # Accuracy on poisoned data
+        Model1_Poisoned_Accuracy,  # Accuracy of poisoned data
         Model2_Poisoned_Accuracy,
         Model3_Poisoned_Accuracy,
     ],
     "Denoised Data Accuracy": [
-        Model1_Denoised_Accuracy,  # Accuracy on denoised data
+        Model1_Denoised_Accuracy,  # Accuracy of denoised data
         Model2_Denoised_Accuracy,
         Model3_Denoised_Accuracy,
     ],
@@ -221,38 +219,6 @@ plt.legend(loc="lower right")
 plt.tight_layout()
 plt.show()
 
-# Function to visualize only the denoised images
-def visualize_denoised_only(denoised, indices):
-    """
-    Visualizes only the denoised images.
-
-    Args:
-    - denoised: Denoised images after KernelPCA.
-    - indices: List of indices to visualize.
-    """
-    n = len(indices)  # Number of images to display
-    fig, axes = plt.subplots(1, n, figsize=(n * 3, 3))  # Create a single row of subplots
-
-    for i, idx in enumerate(indices):
-        denoised_img = denoised[idx].reshape(8, 8)  # Reshape back to 8x8
-        axes[i].imshow(denoised_img, cmap="gray")  # Display the denoised image
-        axes[i].set_title(f"Denoised #{idx}")  # Add a title with the index
-        axes[i].axis("off")  # Turn off axis labels for a cleaner display
-
-    plt.tight_layout()  # Adjust layout to avoid overlap
-    plt.show()
-
-# Reshape denoised data to match original dimensions for visualization
-X_train_denoised_reshaped = kpca.inverse_transform(X_train_denoised).reshape(X_train.shape)
-
-# Choose some indices to visualize
-indices_to_visualize = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-# Call the visualization function
-# visualize_denoised_only(X_train_denoised_reshaped, indices_to_visualize)
-
-
-# test
 # Visualize the first few reconstructed images
 reconstructed_images = kpca.inverse_transform(X_train_denoised).reshape(X_train.shape)
 
