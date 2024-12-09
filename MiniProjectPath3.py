@@ -71,7 +71,6 @@ class_numbers = [2,0,8,7,5]
 
 #Part 1
 class_number_images , class_number_labels = dataset_searcher(class_numbers, images, labels)
-print(len(class_number_images))
 #Part 2
 print_numbers(class_number_images , class_number_labels )
 
@@ -159,7 +158,7 @@ X_train_poison_reshaped = X_train_poison.reshape(X_train_poison.shape[0], -1)
 
 # Apply KernelPCA for denoising
 # Reduce dimensions and enable inverse transformation for visualization
-kpca = KernelPCA(n_components=64, kernel='linear', gamma=0.01, fit_inverse_transform=True)
+kpca = KernelPCA(n_components=64, kernel='linear', gamma=0.001, fit_inverse_transform=True)
 X_train_denoised = kpca.fit_transform(X_train_poison_reshaped)  # Denoised training data
 
 # Transform the test data to match the reduced dimensions
@@ -222,23 +221,30 @@ plt.show()
 # Visualize the first few reconstructed images
 reconstructed_images = kpca.inverse_transform(X_train_denoised).reshape(X_train.shape)
 
-def visualize_reconstructed(images, original, indices):
-    fig, axes = plt.subplots(2, len(indices), figsize=(15, 5))
+def visualize_reconstructed(images, original, noised, indices):
+    fig, axes = plt.subplots(3, len(indices), figsize=(15, 8))  # Increased height for clarity
 
     for i, idx in enumerate(indices):
         # Original image
         axes[0, i].imshow(original[idx], cmap='gray')
-        axes[0, i].set_title("Original")
-        axes[0, i].axis('off')
+        axes[0, i].axis('off')  # Remove axis labels for cleaner visuals
+
+        # Noisy image
+        axes[1, i].imshow(noised[idx], cmap='gray')
+        axes[1, i].axis('off')
 
         # Reconstructed image
-        axes[1, i].imshow(images[idx], cmap='gray')
-        axes[1, i].set_title("Reconstructed")
-        axes[1, i].axis('off')
+        axes[2, i].imshow(images[idx], cmap='gray')
+        axes[2, i].axis('off')
+
+    # Add row titles
+    fig.text(0.5, 0.9, "Original Images", ha='center', fontsize=14)  # Title for the first row
+    fig.text(0.5, 0.6, "Poisoned Images", ha='center', fontsize=14)  # Title for the second row
+    fig.text(0.5, 0.3, "Denoised Images", ha='center', fontsize=14)  # Title for the third row
 
     plt.tight_layout()
     plt.show()
 
 # Choose indices to visualize
 indices_to_visualize = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-visualize_reconstructed(reconstructed_images, X_train, indices_to_visualize)
+visualize_reconstructed(reconstructed_images, X_train, X_train_poison, indices_to_visualize)
